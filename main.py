@@ -1,0 +1,255 @@
+import dash
+import dash_bootstrap_components as dbc
+from dash import dcc, html, callback
+from dash.dependencies import Input, Output, State
+import dash_loading_spinners as dls
+from os import path
+import yfinance as yf
+import pandas as pd
+
+import srcs.download_data as download
+import srcs.indicators as indi
+import srcs.get_chart as get_chart
+
+external_stylesheets = [dbc.themes.FLATLY]
+
+# defining header data of the webpage
+app = dash.Dash(__name__,
+	external_stylesheets = external_stylesheets,
+	meta_tags=[
+		{
+			'name':'viewport',
+			'content':'width=device-width, initial-scale=1.0, maximum-scale=1.2, minimum-scale=0.5'
+		},
+		{
+			'name':'descripiton',
+			'content':'Stock monitoring'
+		}
+	],
+	title = 'Stock monitoring tool',
+	update_title = 'Updating data..'
+)
+
+server = app.server
+
+# adjusting the html of the page
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+	<head>
+		{%metas%}
+		<title>{%title%}</title>        
+		{%favicon%}
+		{%css%}        
+		<meta content="Stay up to date with the markets with the stock monitoring tool!">
+	</head>
+	<body>
+		{%app_entry%}
+
+		<footer style="display:hidden">
+			{%config%}
+			{%scripts%}
+			{%renderer%}           
+		</footer>
+</html>
+'''
+
+# layout of the page
+app.layout = dbc.Container([
+	# container for viewport
+	html.Div([
+		dcc.Location(id='url'),
+		html.Div(id='viewport-container')
+	]),
+
+	# title
+	dbc.Row([
+		dbc.Col(html.H1('Stock monitoring tool'))
+	]),
+
+	# introduction text
+	dbc.Row(
+		dbc.Col(html.P(
+			"""
+			The stock markets are going crazy nowadays. To not miss any important 
+			developments, it's important to stay up to date with what's going on. 
+			This tools lets you track some of the most popular stocks and their key indicators.
+			To use the tool, just select the stock and indicator you are interested in 
+			and don't miss out on any trend ever again!
+			"""
+		))
+	),
+
+	# selection of stock and indicator
+	html.Div([dbc.Row([
+		# stock
+		dbc.Col(
+			html.Div([
+				dbc.Row([
+					dbc.Col(html.H4('Stock'))
+				]),
+				dbc.Row([
+					dbc.Col(dcc.Dropdown([], value='AAPL', clearable=False, id='stocks'))
+				])
+			]),
+		xs=10, sm=8, md=5, lg=3, xl=3),
+
+		# indicator
+		dbc.Col(
+			html.Div([
+				dbc.Row([
+					dbc.Col(html.H4('Indicator'))
+				]),
+				dbc.Row([
+					dbc.Col(dcc.Dropdown([], value='14 day ADX', clearable=False, id='indicators'))
+				])
+			]),
+		xs=10, sm=8, md=5, lg=3, xl=3),
+
+		# run buttom
+		dbc.Col(
+			html.Button('Show', n_clicks=0, id='show-stock'),
+		xs=10, sm=8, md=5, lg=3, xl=3)
+	], justify='center')], className='selection'),
+
+	# error message
+	dbc.Row([
+		dbc.Col(
+			dbc.Alert(
+					"Data cannot be loaded, try another stock or try later again!",
+					id="alert",
+					duration=3000,
+					is_open=False,
+					color='warning'
+				)
+			, xs=10, sm=8, md=8, lg=6, xl=6),
+	], justify='center'),
+
+	# dashboard section
+	dls.Bars([
+		html.Div([
+			dbc.Row([
+				dbc.Col(
+					html.Div([
+						dbc.Row([
+							dbc.Col(
+								html.Div([
+									dcc.Graph(id = 'stock-price')
+								]),
+							xs=12, sm=12, md=12, lg=10, xl=10)
+						], justify='center'),
+						dbc.Row([
+							dbc.Col(
+								html.Div([
+									dcc.Graph(id = 'indicator-chart')
+								], id = 'show-indicator'),
+							xs=12, sm=12, md=12, lg=10, xl=10)
+						], justify='center')
+					])
+				)
+			], justify='center')
+		], id='show-dashboard')
+	])
+])
+
+# callback functions
+
+# get screen size
+app.clientside_callback(
+	"""
+	function(href) {
+		var w = window.innerWidth;
+		var h = window.innerHeight;
+		return {'height': h, 'width': w};
+	}
+	""",
+	Output('viewport-container', 'children'),
+	Input('url', 'href')
+)
+
+# set list of stocks that can be selected
+app.clientside_callback(
+	"""
+	function(href) {
+		return ['AAPL', 'GOOGL'];
+	}
+	""",
+	Output('stocks', 'options'),
+	Input('url', 'refresh')
+)
+
+# set list of inidcators that can be selected
+app.clientside_callback(
+	"""
+	function(href) {
+		return ['14 day ADX', '21 day exponential moving average', '21 day moving average'];
+	}
+	""",
+	Output('indicators', 'options'),
+	Input('url', 'refresh')
+)
+
+# download and set data to be displayed for stock / indicator
+@callback(
+	Output('stock-price', 'figure'),
+	Output('show-dashboard', 'style'),
+	Output('indicator-chart', 'figure'),
+	Output('show-indicator', 'style'),
+	Output('alert', 'is_open'),
+	Input('show-stock', 'n_clicks'),
+	State('stocks', 'value'),
+	State('indicators', 'value'),
+	prevent_initial_call=True
+	)
+def show_data(n_clicks, ticker, indicator):
+	display_dashboard = {'display': 'none'}
+	display_indicator = {'display': 'none'}
+
+	show_indicator_chart = [
+		'14 day ADX'
+	]
+
+	stock = yf.Ticker(ticker)
+	if not path.exists('./data/'+ticker+'.csv'):
+		hist = download.download_data(ticker, stock)
+		if hist.empty:
+			return dash.no_update, display_dashboard, dash.no_update, display_indicator, True
+	else:
+		hist = pd.read_csv('./data/'+ticker+'.csv')
+	if not indicator in hist.columns:
+		indi.add_indicator(hist, ticker, indicator)
+	if indicator in show_indicator_chart:
+		chart = get_chart.create_chart(hist, indicator, False)
+		indicator_chart = get_chart.create_indicator_chart(hist, indicator)
+		display_indicator = {'display': 'block'}
+	else:
+		chart = get_chart.create_chart(hist, indicator, True)
+		indicator_chart = dash.no_update
+	display_dashboard = {'display': 'block'}
+	return chart, display_dashboard, indicator_chart, display_indicator, False
+
+if __name__ == '__main__': 
+	app.run_server(debug=True)
+
+
+# in chart
+# fib
+#Bolinger bands
+#PSAR
+#DEMA
+#WMA
+
+# under chart 
+#MACD
+#OBV
+#RSI
+#SO
+#SOI
+#chaikin
+#aroon
+#SOMA
+#BBI
+#OBV
+
+#update chart design
+#make height dependent on screen width (must change for smaller screens)

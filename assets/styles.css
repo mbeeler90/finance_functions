@@ -1,0 +1,24 @@
+h1 {
+	text-align: center;
+	padding-top: 3%;
+	padding-bottom: 5%;
+}
+
+p {
+	text-align: block;
+	padding-bottom: 5%;
+}
+
+button {
+	position: absolute;
+	bottom: 0;
+}
+
+#show-dashboard {
+	display: none;
+}
+
+.selection {
+	position: relative;
+	margin-bottom: 3%;
+}
