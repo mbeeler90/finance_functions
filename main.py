@@ -6,6 +6,7 @@ import dash_loading_spinners as dls
 from os import path
 import yfinance as yf
 import pandas as pd
+import json
 
 import srcs.download_data as download
 import srcs.indicators as indi
@@ -135,18 +136,66 @@ app.layout = dbc.Container([
 							dbc.Col(
 								html.Div([
 									dcc.Graph(id = 'stock-price')
-								]),
-							xs=12, sm=12, md=12, lg=10, xl=10)
+								])
+							)
 						], justify='center'),
 						dbc.Row([
 							dbc.Col(
 								html.Div([
 									dcc.Graph(id = 'indicator-chart')
-								], id = 'show-indicator'),
-							xs=12, sm=12, md=12, lg=10, xl=10)
+								], id = 'show-indicator')
+							)
 						], justify='center')
-					])
-				)
+					]),
+				xs=12, sm=12, md=10, lg=8, xl=8),
+				dbc.Col(
+					html.Div([
+						dbc.Row([
+							dbc.Col(
+								html.Div([
+									html.P('Company name', className='info-head'),
+									html.P('', id='company-name', className='info-content')
+								]),
+							xs=6, sm=6, md=4, lg=6, xl=6),
+							dbc.Col(
+								html.Div([
+									html.P('Industry', className='info-head'),
+									html.P('', id='industry', className='info-content')
+								]),
+							xs=6, sm=6, md=4, lg=6, xl=6),
+							dbc.Col(
+								html.Div([
+									html.P('Price', className='info-head'),
+									html.P('', id='price', className='info-content')
+								]),
+							xs=6, sm=6, md=4, lg=6, xl=6),
+							dbc.Col(
+								html.Div([
+									html.P('Return (12 months)', className='info-head'),
+									html.P('', id='return', className='info-content')
+								]),
+							xs=6, sm=6, md=4, lg=6, xl=6),
+							dbc.Col(
+								html.Div([
+									html.P('Forward EPS', className='info-head'),
+									html.P('', id='forward-eps', className='info-content')
+								]),
+							xs=6, sm=6, md=4, lg=6, xl=6),
+							dbc.Col(
+								html.Div([
+									html.P('Forward P/E', className='info-head'),
+									html.P('', id='forward-pe', className='info-content')
+								]),
+							xs=6, sm=6, md=4, lg=6, xl=6),
+							dbc.Col(
+								html.Div([
+									html.P('Latest News', className='info-head'),
+									html.Div([], id='news-feed', className='news-content'),
+								]),
+							xs=12)
+						]),
+					]),
+				xs=12, sm=12, md=10, lg=4, xl=4),
 			], justify='center')
 		], id='show-dashboard')
 	])
@@ -171,7 +220,7 @@ app.clientside_callback(
 app.clientside_callback(
 	"""
 	function(href) {
-		return ['AAPL', 'GOOGL'];
+		return ['AAPL', 'ABNB', 'AMD', 'AMZN', 'BA', 'CSCO', 'DIS', 'DKNG', 'GM', 'GOOGL', 'IBM', 'INT', 'JNJ', 'KO', 'META', 'MSFT', 'NKE', 'VZ', 'WMT'];
 	}
 	""",
 	Output('stocks', 'options'),
@@ -195,6 +244,13 @@ app.clientside_callback(
 	Output('show-dashboard', 'style'),
 	Output('indicator-chart', 'figure'),
 	Output('show-indicator', 'style'),
+	Output('company-name', 'children'),
+	Output('industry', 'children'),
+	Output('price', 'children'),
+	Output('return', 'children'),
+	Output('forward-eps', 'children'),
+	Output('forward-pe', 'children'),
+	Output('news-feed', 'children'),
 	Output('alert', 'is_open'),
 	Input('show-stock', 'n_clicks'),
 	State('stocks', 'value'),
@@ -211,11 +267,14 @@ def show_data(n_clicks, ticker, indicator):
 
 	stock = yf.Ticker(ticker)
 	if not path.exists('./data/'+ticker+'.csv'):
-		hist = download.download_data(ticker, stock)
+		hist, stock_info = download.download_data(ticker, stock)
 		if hist.empty:
-			return dash.no_update, display_dashboard, dash.no_update, display_indicator, True
+			return dash.no_update, display_dashboard, dash.no_update, display_indicator, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, True
 	else:
 		hist = pd.read_csv('./data/'+ticker+'.csv')
+		with open('./data/'+ticker+'_info.txt') as f:
+			data = f.read()
+		stock_info = json.loads(data)
 	if not indicator in hist.columns:
 		indi.add_indicator(hist, ticker, indicator)
 	if indicator in show_indicator_chart:
@@ -225,11 +284,14 @@ def show_data(n_clicks, ticker, indicator):
 	else:
 		chart = get_chart.create_chart(hist, indicator, True)
 		indicator_chart = dash.no_update
+	
+	news_feed = get_chart.news_feed(stock_info['news'])
+
 	display_dashboard = {'display': 'block'}
-	return chart, display_dashboard, indicator_chart, display_indicator, False
+	return chart, display_dashboard, indicator_chart, display_indicator, stock_info['name'], stock_info['industry'], stock_info['price'], str(stock_info['return'])+'%', stock_info['forwardEPS'], stock_info['forwardPE'], news_feed, False
 
 if __name__ == '__main__': 
-	app.run_server(debug=True)
+	app.run_server()
 
 
 # in chart
@@ -253,3 +315,4 @@ if __name__ == '__main__':
 
 #update chart design
 #make height dependent on screen width (must change for smaller screens)
+#setup python virtual environment

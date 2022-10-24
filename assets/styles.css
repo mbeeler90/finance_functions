@@ -22,3 +22,35 @@ button {
 	position: relative;
 	margin-bottom: 3%;
 }
+
+.info-head, .info-content, .news-content {
+	width: 100%;
+	border-style: solid;
+	border-color: black;
+	border-radius: 5px;
+}
+
+.info-head {
+	text-align: center;
+	background-color: silver;
+	font-weight: bold;
+	margin-bottom: 0;
+	border-bottom: none;
+	padding-top: 5px;
+	padding-bottom: 5px;
+}
+
+.info-content {
+	text-align: center;
+	font-size: 150%;
+	padding-top: 20%;
+	padding-bottom: 20%;
+	margin-top: 0;
+}
+
+.news-list {
+	padding-top: 0px;
+	font-size: 80%;
+	padding-bottom: 0px;
+	margin-bottom: 0px;
+}

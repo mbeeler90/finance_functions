@@ -1,5 +1,6 @@
 import plotly.express as px
 import pandas as pd
+from dash import html
 
 def create_chart(hist, indicator, include_indicator):
 	displayed_lines = ['Price']
@@ -58,3 +59,25 @@ def create_indicator_chart(hist, indicator):
 	)	
 
 	return fig
+
+def news_feed(news):
+	if len(news) > 5:
+		num_news = 5
+	else:
+		num_news = len(news)
+	news_list = []
+	for i in range(num_news):
+		news_item = html.Li(
+			html.P([
+				news[i]['title'],
+				' (',
+				html.I(news[i]['publisher']),
+				') \U0001F449 ',
+				html.A('read more', href=news[i]['link'], target='_blank')
+			], className='news-list')
+		)
+		news_list.append(news_item)
+	news_feed = html.Div([
+		html.Ul(news_list)
+	])
+	return news_feed

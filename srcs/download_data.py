@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import datetime
+import json
 
 # download the stock data for the ticker for the last year and save it in csv file
 def download_data(ticker, stock, period='1y', interval='1d'):
@@ -18,4 +18,37 @@ def download_data(ticker, stock, period='1y', interval='1d'):
 		return hist
 	else:
 		hist.to_csv('./data/'+ticker+'.csv')
-		return hist
+		stock_info = download_stock_info(stock, ticker, hist)
+		return hist, stock_info
+
+def download_stock_info(stock, ticker, hist):
+	stock_info = {
+		'name': 'not available',
+		'industry': 'not available',
+		'price': 'not available',
+		'return': 'not available',
+		'forwardEPS': 'not available',
+		'forwardPE': 'not available',
+		'news': 'not available',
+	}
+
+	try:
+		stock_tmp = stock.info
+		stock_info['name'] = stock_tmp['shortName']
+		stock_info['industry'] = stock_tmp['sector']
+		stock_info['forwardEPS'] = round(stock_tmp['forwardEps'], 2)
+		stock_info['forwardPE'] = round(stock_tmp['forwardPE'], 2)
+		if np.isnan(hist.loc[max(hist.index), 'Close']):
+			price = round(hist.loc[max(hist.index) - 1, 'Close'], 2)
+			performance = round((hist.loc[max(hist.index) - 1, 'Close'] - hist.loc[0, 'Close']) / hist.loc[0, 'Close'] * 100, 2)
+		else:
+			price = round(hist.loc[max(hist.index), 'Close'], 2)
+			performance = round((hist.loc[max(hist.index), 'Close'] - hist.loc[0, 'Close']) / hist.loc[0, 'Close'] * 100, 2)
+		stock_info['price'] = price
+		stock_info['return'] = performance
+		stock_info['news'] = stock.news
+	except Exception as e:
+		print(e)
+	with open('./data/'+ticker+'_info.txt', 'w') as file:
+		file.write(json.dumps(stock_info))
+	return stock_info
