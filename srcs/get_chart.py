@@ -1,16 +1,23 @@
 import plotly.express as px
+import plotly.graph_objects as go
 import pandas as pd
 from dash import html
 
 def create_chart(hist, indicator, include_indicator):
 	displayed_lines = ['Price']
+	indicator_list = [indicator]
+	#if indicator == '21 day Bollinger bands':
+	#	indicator_list.append(indicator+'_high')
+	#	indicator_list.append(indicator+'_low')
+
 	df = pd.DataFrame([])
 	df['Date'] = hist['Date']
 	df['Price'] = hist['Close']
-	if include_indicator:
-		df[indicator] = hist[indicator]
-		displayed_lines.append(indicator)
-	
+	if include_indicator and not indicator == 'Fibonacci levels' and not indicator == 'Parabolic SAR':
+		for element in indicator_list:
+			df[element] = hist[element]
+			displayed_lines.append(element)
+
 	fig = px.line(
 		df,
 		x='Date',
@@ -21,6 +28,17 @@ def create_chart(hist, indicator, include_indicator):
 			'value': ''
 		},
 	)
+
+	if (indicator == 'Fibonacci levels'):	
+		min_fib = min(df['Price'])
+		max_fib = max(df['Price'])
+		fig.add_hline(y=min_fib)
+		fig.add_hline(y=min_fib + (max_fib - min_fib) * 0.236)
+		fig.add_hline(y=min_fib + (max_fib - min_fib) * 0.382)
+		fig.add_hline(y=min_fib + (max_fib - min_fib) * 0.5)
+		fig.add_hline(y=min_fib + (max_fib - min_fib) * 0.618)
+		fig.add_hline(y=min_fib + (max_fib - min_fib) * 0.764)
+		fig.add_hline(y=max_fib)
 
 	fig.update_layout(
 		showlegend=False,
@@ -33,6 +51,23 @@ def create_chart(hist, indicator, include_indicator):
 				'visible': False
 			}
 		)
+
+	if indicator == '21 day Bollinger bands':
+		fig2 = go.Figure()
+		fig2.add_traces(go.Scatter(x=hist['Date'], y = hist[indicator+'_low'],
+			line = dict(color='black')))
+
+		fig2.add_traces(go.Scatter(x=hist['Date'], y = hist[indicator+'_high'],
+			line = dict(color='black'),
+			fill='tonexty', 
+			fillcolor = 'yellow'))
+		
+		fig2.add_traces(data=fig.data)
+		fig = fig2
+
+	if indicator == 'Parabolic SAR':
+		fig2 = px.scatter(x=hist['Date'], y=hist['PSAR'])
+		fig = go.Figure(data=fig.data+fig2.data)
 
 	return fig
 

@@ -231,7 +231,7 @@ app.clientside_callback(
 app.clientside_callback(
 	"""
 	function(href) {
-		return ['14 day ADX', '21 day exponential moving average', '21 day moving average'];
+		return ['14 day ADX', '21 day Bollinger bands', '21 day DEMA', '21 day EMA', '21 day LWMA', '21 day simple MA', 'Fibonacci levels', 'Parabolic SAR'];
 	}
 	""",
 	Output('indicators', 'options'),
@@ -294,12 +294,6 @@ if __name__ == '__main__':
 	app.run_server()
 
 
-# in chart
-# fib
-#Bolinger bands
-#PSAR
-#DEMA
-#WMA
 
 # under chart 
 #MACD
