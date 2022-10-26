@@ -7,6 +7,7 @@ from os import path
 import yfinance as yf
 import pandas as pd
 import json
+from datetime import datetime
 
 import srcs.download_data as download
 import srcs.indicators as indi
@@ -102,7 +103,7 @@ app.layout = dbc.Container([
 					dbc.Col(html.H4('Indicator'))
 				]),
 				dbc.Row([
-					dbc.Col(dcc.Dropdown([], value='14 day ADX', clearable=False, id='indicators'))
+					dbc.Col(dcc.Dropdown([], value='12 / 26 day MACD', clearable=False, id='indicators'))
 				])
 			]),
 		xs=10, sm=8, md=5, lg=3, xl=3),
@@ -129,6 +130,12 @@ app.layout = dbc.Container([
 	# dashboard section
 	dls.Bars([
 		html.Div([
+			dbc.Row([
+				dbc.Col(html.P('time period'), xs=6, sm=6, md=4, lg=3, xl=3)
+			], justify = 'left'),
+			dbc.Row([
+				dbc.Col(dcc.Dropdown(['1 year', 'YTD', '1 month', 'MTD'], value='1 year', clearable=False, id='time-period'), xs=6, sm=6, md=4, lg=3, xl=3)
+			], justify='left'),
 			dbc.Row([
 				dbc.Col(
 					html.Div([
@@ -231,7 +238,7 @@ app.clientside_callback(
 app.clientside_callback(
 	"""
 	function(href) {
-		return ['14 day ADX', '21 day Bollinger bands', '21 day DEMA', '21 day EMA', '21 day LWMA', '21 day simple MA', 'Fibonacci levels', 'Parabolic SAR'];
+		return ['3 / 10 day Chaikin indicator', '12 / 26 day MACD', '14 day ADX', '14 day RSI', '14 day stochastic oscillator', '21 day Bollinger bands', '21 day DEMA', '21 day EMA', '21 day LWMA', '21 day simple MA', '25 day Aroon indicator', 'Fibonacci levels', 'Parabolic SAR'];
 	}
 	""",
 	Output('indicators', 'options'),
@@ -253,16 +260,22 @@ app.clientside_callback(
 	Output('news-feed', 'children'),
 	Output('alert', 'is_open'),
 	Input('show-stock', 'n_clicks'),
+	Input('time-period', 'value'),
 	State('stocks', 'value'),
 	State('indicators', 'value'),
 	prevent_initial_call=True
 	)
-def show_data(n_clicks, ticker, indicator):
+def show_data(n_clicks, time_period, ticker, indicator):
 	display_dashboard = {'display': 'none'}
 	display_indicator = {'display': 'none'}
 
 	show_indicator_chart = [
-		'14 day ADX'
+		'3 / 10 day Chaikin indicator',
+		'12 / 26 day MACD',
+		'14 day ADX',
+		'14 day RSI',
+		'14 day stochastic oscillator',
+		'25 day Aroon indicator'
 	]
 
 	stock = yf.Ticker(ticker)
@@ -275,16 +288,28 @@ def show_data(n_clicks, ticker, indicator):
 		with open('./data/'+ticker+'_info.txt') as f:
 			data = f.read()
 		stock_info = json.loads(data)
+
 	if not indicator in hist.columns:
 		indi.add_indicator(hist, ticker, indicator)
+
+	now = datetime.now()
+	year = now.strftime('%Y')
+	month = now.strftime('%m')
+	if time_period == '1 year':
+		period = hist.loc[0, 'Date']
+	elif time_period == 'YTD':
+		period = year + '-01-01'
+	elif time_period == '1 month':
+		period = hist.loc[max(hist.index) - 22, 'Date']
+	else:
+		period = year + '-' + month + '-01'
 	if indicator in show_indicator_chart:
-		chart = get_chart.create_chart(hist, indicator, False)
-		indicator_chart = get_chart.create_indicator_chart(hist, indicator)
+		chart = get_chart.create_chart(hist, indicator, False, period)
+		indicator_chart = get_chart.create_indicator_chart(hist, indicator, period)
 		display_indicator = {'display': 'block'}
 	else:
-		chart = get_chart.create_chart(hist, indicator, True)
+		chart = get_chart.create_chart(hist, indicator, True, period)
 		indicator_chart = dash.no_update
-	
 	news_feed = get_chart.news_feed(stock_info['news'])
 
 	display_dashboard = {'display': 'block'}
@@ -295,18 +320,6 @@ if __name__ == '__main__':
 
 
 
-# under chart 
-#MACD
-#OBV
-#RSI
-#SO
-#SOI
-#chaikin
-#aroon
-#SOMA
-#BBI
-#OBV
-
-#update chart design
-#make height dependent on screen width (must change for smaller screens)
+#update chart design / general design / make height dependent on screen width (must change for smaller screens)
+# cleanup functions / describe functions with comments
 #setup python virtual environment

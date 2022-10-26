@@ -3,20 +3,13 @@ import plotly.graph_objects as go
 import pandas as pd
 from dash import html
 
-def create_chart(hist, indicator, include_indicator):
-	displayed_lines = ['Price']
-	indicator_list = [indicator]
-	#if indicator == '21 day Bollinger bands':
-	#	indicator_list.append(indicator+'_high')
-	#	indicator_list.append(indicator+'_low')
+def create_chart(hist, indicator, include_indicator, date):
+	displayed_lines = ['Close']
+	hist['Date'] = pd.to_datetime(hist['Date'], format='%Y-%m-%d')
+	df = hist.loc[(hist['Date'] >= date)]
 
-	df = pd.DataFrame([])
-	df['Date'] = hist['Date']
-	df['Price'] = hist['Close']
 	if include_indicator and not indicator == 'Fibonacci levels' and not indicator == 'Parabolic SAR':
-		for element in indicator_list:
-			df[element] = hist[element]
-			displayed_lines.append(element)
+		displayed_lines.append(indicator)
 
 	fig = px.line(
 		df,
@@ -54,10 +47,10 @@ def create_chart(hist, indicator, include_indicator):
 
 	if indicator == '21 day Bollinger bands':
 		fig2 = go.Figure()
-		fig2.add_traces(go.Scatter(x=hist['Date'], y = hist[indicator+'_low'],
+		fig2.add_traces(go.Scatter(x=df['Date'], y = df[indicator+'_low'],
 			line = dict(color='black')))
 
-		fig2.add_traces(go.Scatter(x=hist['Date'], y = hist[indicator+'_high'],
+		fig2.add_traces(go.Scatter(x=df['Date'], y = df[indicator+'_high'],
 			line = dict(color='black'),
 			fill='tonexty', 
 			fillcolor = 'yellow'))
@@ -66,24 +59,30 @@ def create_chart(hist, indicator, include_indicator):
 		fig = fig2
 
 	if indicator == 'Parabolic SAR':
-		fig2 = px.scatter(x=hist['Date'], y=hist['PSAR'])
+		fig2 = px.scatter(x=df['Date'], y=df['PSAR'])
 		fig = go.Figure(data=fig.data+fig2.data)
 
 	return fig
 
-def create_indicator_chart(hist, indicator):
-	df = pd.DataFrame([])
-	df['Date'] = hist['Date']
-	df[indicator] = hist[indicator]
+def create_indicator_chart(hist, indicator, date):
+	hist['Date'] = pd.to_datetime(hist['Date'], format='%Y-%m-%d')
+	df = hist.loc[(hist['Date'] >= date)]
 
+	indicator_list = [indicator]
+	if indicator == '12 / 26 day MACD':
+		indicator_list.append(indicator+' moving average')
+	if indicator == '25 day Aroon indicator':
+		indicator_list = [indicator+' up', indicator+' down']
+	if indicator == '14 day stochastic oscillator':
+		indicator_list.append(indicator+' moving average')
 	fig = px.line(
 		df,
 		x='Date',
-		y=indicator,
+		y=indicator_list,
 		title='',
 		labels={
 			'Date': '',
-			indicator: ''
+			'value': ''
 		},
 	)
 

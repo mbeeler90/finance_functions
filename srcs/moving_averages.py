@@ -50,3 +50,10 @@ def linear_weighted_moving_average(hist, indicator, look_back, price='Close'):
 
 def moving_average(hist, indicator, look_back, price='Close'):
 	hist[indicator] = hist[price].rolling(look_back).mean()
+
+def MACD(hist, indicator, low_avg, high_avg, look_back, price='Close'):
+	for days in [low_avg, high_avg]:
+		if not str(days)+' day EMA' in hist.columns:
+			exponential_moving_average(hist, str(days)+' day EMA', days, price)
+	hist[indicator] = hist[str(low_avg)+' day EMA'] - hist[str(high_avg)+' day EMA']
+	hist[indicator+' moving average'] = hist[indicator].rolling(look_back).mean()
