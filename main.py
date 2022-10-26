@@ -79,8 +79,8 @@ app.layout = dbc.Container([
 			To use the tool, just select the stock and indicator you are interested in 
 			and don't miss out on any trend ever again!
 			"""
-		))
-	),
+		), xs=10)
+	, justify='center'),
 
 	# selection of stock and indicator
 	html.Div([dbc.Row([
@@ -92,9 +92,10 @@ app.layout = dbc.Container([
 				]),
 				dbc.Row([
 					dbc.Col(dcc.Dropdown([], value='AAPL', clearable=False, id='stocks'))
-				])
+				]),
+				dbc.Row([html.Br()])
 			]),
-		xs=10, sm=8, md=5, lg=3, xl=3),
+		xs=10, sm=8, md=4, lg=3, xl=3),
 
 		# indicator
 		dbc.Col(
@@ -106,13 +107,13 @@ app.layout = dbc.Container([
 					dbc.Col(dcc.Dropdown([], value='3 / 10 day Chaikin indicator', clearable=False, id='indicators'))
 				])
 			]),
-		xs=10, sm=8, md=5, lg=3, xl=3),
+		xs=10, sm=8, md=4, lg=3, xl=3),
 
 		# run buttom
 		dbc.Col(
 			html.Button('Show', n_clicks=0, id='show-stock'),
-		xs=10, sm=8, md=5, lg=3, xl=3)
-	], justify='center')], className='selection'),
+		xs=10, sm=8, md=2, lg=3, xl=3)
+	], justify='center')]),
 
 	# error message
 	dbc.Row([
@@ -134,7 +135,7 @@ app.layout = dbc.Container([
 				dbc.Col(html.H2('', id='stock-title', className='stock-title'))
 			], justify = 'center'),
 			dbc.Row([
-				dbc.Col(dcc.Dropdown(['1 year', 'YTD', '1 month', 'MTD'], value='1 year', clearable=False, id='time-period', className='time-period'), xs=4, sm=4, md=3, lg=2, xl=2)
+				dbc.Col(dcc.Dropdown(['1 year', 'YTD', '1 month', 'MTD'], value='1 year', clearable=False, id='time-period', className='time-period'), xs=10, sm=10, md=4, lg=2, xl=2)
 			], justify='left'),
 			dbc.Row([
 				dbc.Col(
@@ -154,7 +155,7 @@ app.layout = dbc.Container([
 							)
 						], justify='center')
 					]),
-				xs=12, sm=12, md=10, lg=8, xl=8),
+				xs=12, sm=12, md=12, lg=8, xl=8),
 				dbc.Col(
 					html.Div([
 						dbc.Row([
@@ -264,9 +265,11 @@ app.clientside_callback(
 	Input('time-period', 'value'),
 	State('stocks', 'value'),
 	State('indicators', 'value'),
+	State('viewport-container', 'children'),
 	prevent_initial_call=True
 	)
-def show_data(n_clicks, time_period, ticker, indicator):
+def show_data(n_clicks, time_period, ticker, indicator, size):
+	width = size['width']
 	display_dashboard = {'display': 'none'}
 	display_indicator = {'display': 'none'}
 
@@ -305,22 +308,23 @@ def show_data(n_clicks, time_period, ticker, indicator):
 	else:
 		period = year + '-' + month + '-01'
 	if indicator in show_indicator_chart:
-		chart = get_chart.create_chart(hist, indicator, False, period)
-		indicator_chart = get_chart.create_indicator_chart(hist, indicator, period)
+		chart = get_chart.create_chart(hist, indicator, False, period, width)
+		indicator_chart = get_chart.create_indicator_chart(hist, indicator, period, width)
 		display_indicator = {'display': 'block'}
 	else:
-		chart = get_chart.create_chart(hist, indicator, True, period)
+		chart = get_chart.create_chart(hist, indicator, True, period, width)
 		indicator_chart = dash.no_update
 	news_feed = get_chart.news_feed(stock_info['news'])
 
-	display_dashboard = {'display': 'block'}
+	if width < 992:
+		display_dashboard = {'display': 'block', 'margin-right': '0px'}
+	else:
+		display_dashboard = {'display': 'block', 'margin-right': '75px'}
 	return chart, display_dashboard, indicator_chart, display_indicator, ticker, stock_info['name'], stock_info['industry'], stock_info['price'], str(stock_info['return'])+'%', stock_info['forwardEPS'], stock_info['forwardPE'], news_feed, False
 
 if __name__ == '__main__': 
 	app.run_server(debug=True)
 
 
-
-#general design / make height dependent on screen width (must change for smaller screens)
 # cleanup functions / describe functions with comments
 #setup python virtual environment

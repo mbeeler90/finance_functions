@@ -3,7 +3,14 @@ import plotly.graph_objects as go
 import pandas as pd
 from dash import html
 
-def create_chart(hist, indicator, include_indicator, date):
+def create_chart(hist, indicator, include_indicator, date, width):
+	if width >= 1200:
+		height_large = 500
+		height_small = 450
+	else:
+		height_large = max(100, width * 500 / 1200)
+		height_small = max(100, width * 450 / 1200)
+	
 	displayed_lines = ['Close']
 	no_line = ['Fibonacci levels', '21 day Bollinger bands', 'Parabolic SAR']
 	if include_indicator  and not indicator in no_line:
@@ -47,12 +54,21 @@ def create_chart(hist, indicator, include_indicator, date):
 			xaxis = {
 				'visible': False
 			},
-			height = 450
+			height = height_small
+		)
+	else:
+		fig.update_layout(
+			height = height_large
 		)
 
 	return fig
 
-def create_indicator_chart(hist, indicator, date):
+def create_indicator_chart(hist, indicator, date, width):
+	if width >= 1200:
+		height = 240
+	else:
+		height = max(100, width * 240 / 1200)
+
 	indicator_list = [indicator]
 	if indicator == '12 / 26 day MACD':
 		indicator_list.append(indicator+' moving average')
@@ -65,7 +81,7 @@ def create_indicator_chart(hist, indicator, date):
 	update_layout(fig, indicator_list, indicator)
 
 	fig.update_layout(
-		height=240
+		height=height
 	)
 
 	return fig

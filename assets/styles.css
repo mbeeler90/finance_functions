@@ -5,28 +5,27 @@ h1 {
 }
 
 p {
-	text-align: block;
+	text-align: justify;
 	padding-bottom: 5%;
 }
 
 button {
-	position: absolute;
-	bottom: 0;
+	margin-top: 40px;
 	background-color: silver;
+}
+
+#show-indicator {
+	margin-bottom: 15px;
 }
 
 #show-dashboard {
 	display: none;
 	margin-bottom: 100px;
+	margin-right: 75px;
 }
 
 .title {
 	margin-top: 30px;
-}
-
-.selection {
-	position: relative;
-	margin-bottom: 3%;
 }
 
 .info-head, .info-content, .info-content-num, .news-content {
