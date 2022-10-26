@@ -12,10 +12,16 @@ p {
 button {
 	position: absolute;
 	bottom: 0;
+	background-color: silver;
 }
 
 #show-dashboard {
 	display: none;
+	margin-bottom: 100px;
+}
+
+.title {
+	margin-top: 30px;
 }
 
 .selection {
@@ -23,7 +29,7 @@ button {
 	margin-bottom: 3%;
 }
 
-.info-head, .info-content, .news-content {
+.info-head, .info-content, .info-content-num, .news-content {
 	width: 100%;
 	border-style: solid;
 	border-color: black;
@@ -32,25 +38,45 @@ button {
 
 .info-head {
 	text-align: center;
+	font-size: 75%;
 	background-color: silver;
 	font-weight: bold;
-	margin-bottom: 0;
+	margin-bottom: 0px;
+	margin-top: 20px;
 	border-bottom: none;
 	padding-top: 5px;
 	padding-bottom: 5px;
 }
 
-.info-content {
+.info-content, .info-content-num {
 	text-align: center;
-	font-size: 150%;
-	padding-top: 20%;
-	padding-bottom: 20%;
+	padding-top: 25px;
+	height: 100px;
 	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.info-content {
+	font-size: 110%;
+}
+
+.info-content-num {
+	font-size: 150%;
 }
 
 .news-list {
 	padding-top: 0px;
-	font-size: 80%;
+	font-size: 75%;
 	padding-bottom: 0px;
 	margin-bottom: 0px;
+}
+
+.stock-title {
+	text-align: center;
+	margin-top: 30px;
+	margin-bottom: 20px;
+}
+
+.time-period {
+	margin-left: 75px;
 }

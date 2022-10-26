@@ -66,7 +66,7 @@ app.layout = dbc.Container([
 
 	# title
 	dbc.Row([
-		dbc.Col(html.H1('Stock monitoring tool'))
+		dbc.Col(html.H1('Stock monitoring tool'), className='title')
 	]),
 
 	# introduction text
@@ -103,7 +103,7 @@ app.layout = dbc.Container([
 					dbc.Col(html.H4('Indicator'))
 				]),
 				dbc.Row([
-					dbc.Col(dcc.Dropdown([], value='12 / 26 day MACD', clearable=False, id='indicators'))
+					dbc.Col(dcc.Dropdown([], value='3 / 10 day Chaikin indicator', clearable=False, id='indicators'))
 				])
 			]),
 		xs=10, sm=8, md=5, lg=3, xl=3),
@@ -131,10 +131,10 @@ app.layout = dbc.Container([
 	dls.Bars([
 		html.Div([
 			dbc.Row([
-				dbc.Col(html.P('time period'), xs=6, sm=6, md=4, lg=3, xl=3)
-			], justify = 'left'),
+				dbc.Col(html.H2('', id='stock-title', className='stock-title'))
+			], justify = 'center'),
 			dbc.Row([
-				dbc.Col(dcc.Dropdown(['1 year', 'YTD', '1 month', 'MTD'], value='1 year', clearable=False, id='time-period'), xs=6, sm=6, md=4, lg=3, xl=3)
+				dbc.Col(dcc.Dropdown(['1 year', 'YTD', '1 month', 'MTD'], value='1 year', clearable=False, id='time-period', className='time-period'), xs=4, sm=4, md=3, lg=2, xl=2)
 			], justify='left'),
 			dbc.Row([
 				dbc.Col(
@@ -173,25 +173,25 @@ app.layout = dbc.Container([
 							dbc.Col(
 								html.Div([
 									html.P('Price', className='info-head'),
-									html.P('', id='price', className='info-content')
+									html.P('', id='price', className='info-content-num')
 								]),
 							xs=6, sm=6, md=4, lg=6, xl=6),
 							dbc.Col(
 								html.Div([
 									html.P('Return (12 months)', className='info-head'),
-									html.P('', id='return', className='info-content')
+									html.P('', id='return', className='info-content-num')
 								]),
 							xs=6, sm=6, md=4, lg=6, xl=6),
 							dbc.Col(
 								html.Div([
 									html.P('Forward EPS', className='info-head'),
-									html.P('', id='forward-eps', className='info-content')
+									html.P('', id='forward-eps', className='info-content-num')
 								]),
 							xs=6, sm=6, md=4, lg=6, xl=6),
 							dbc.Col(
 								html.Div([
 									html.P('Forward P/E', className='info-head'),
-									html.P('', id='forward-pe', className='info-content')
+									html.P('', id='forward-pe', className='info-content-num')
 								]),
 							xs=6, sm=6, md=4, lg=6, xl=6),
 							dbc.Col(
@@ -251,6 +251,7 @@ app.clientside_callback(
 	Output('show-dashboard', 'style'),
 	Output('indicator-chart', 'figure'),
 	Output('show-indicator', 'style'),
+	Output('stock-title', 'children'),
 	Output('company-name', 'children'),
 	Output('industry', 'children'),
 	Output('price', 'children'),
@@ -282,7 +283,7 @@ def show_data(n_clicks, time_period, ticker, indicator):
 	if not path.exists('./data/'+ticker+'.csv'):
 		hist, stock_info = download.download_data(ticker, stock)
 		if hist.empty:
-			return dash.no_update, display_dashboard, dash.no_update, display_indicator, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, True
+			return dash.no_update, display_dashboard, dash.no_update, display_indicator, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, True
 	else:
 		hist = pd.read_csv('./data/'+ticker+'.csv')
 		with open('./data/'+ticker+'_info.txt') as f:
@@ -313,13 +314,13 @@ def show_data(n_clicks, time_period, ticker, indicator):
 	news_feed = get_chart.news_feed(stock_info['news'])
 
 	display_dashboard = {'display': 'block'}
-	return chart, display_dashboard, indicator_chart, display_indicator, stock_info['name'], stock_info['industry'], stock_info['price'], str(stock_info['return'])+'%', stock_info['forwardEPS'], stock_info['forwardPE'], news_feed, False
+	return chart, display_dashboard, indicator_chart, display_indicator, ticker, stock_info['name'], stock_info['industry'], stock_info['price'], str(stock_info['return'])+'%', stock_info['forwardEPS'], stock_info['forwardPE'], news_feed, False
 
 if __name__ == '__main__': 
-	app.run_server()
+	app.run_server(debug=True)
 
 
 
-#update chart design / general design / make height dependent on screen width (must change for smaller screens)
+#general design / make height dependent on screen width (must change for smaller screens)
 # cleanup functions / describe functions with comments
 #setup python virtual environment
