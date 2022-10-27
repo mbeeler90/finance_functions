@@ -350,6 +350,5 @@ if __name__ == '__main__':
 	app.run_server()
 
 
-# cleanup functions / describe functions with comments
 # add readme
 #setup python virtual environment
