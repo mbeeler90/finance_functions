@@ -348,7 +348,3 @@ def show_data(n_clicks, time_period, ticker, indicator, size):
 
 if __name__ == '__main__': 
 	app.run_server()
-
-
-# add readme
-#setup python virtual environment
