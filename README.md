@@ -16,14 +16,5 @@ Run `python main.py` to start a local server to access the webpage. Select the s
 The following python modules are required to run the program. Install the modules with `pip install [module]` or `conda install [module]`:
 - `dash`
 - `dash_bootstrap_components`
-- `dash_core_components`
-- `dash_html_components`
 - `dash_loading_spinners`
-- `numpy`
-- `pandas`
-- `plotly`
-- `plotly-express`
-- `flask`
 - `yfinance`
-- `datetime`
-- `json`
