@@ -1,3 +1,5 @@
+# Calculation of parabolic stop and reverse. Set for every period whether PSAR is
+# falling or rising and set the prior / current highs / lows accordingly.
 def PSAR(hist):
 	for i in hist.index:
 		if i < 5:
@@ -8,37 +10,37 @@ def PSAR(hist):
 			else: 
 				set_RPSAR(hist, i)				
 		else:
-			if hist.loc[i-1, 'RPSAR'] > 0:
-				if hist.loc[i, 'High'] > hist.loc[i-1, 'Prior_high']:
+			if hist.loc[i - 1, 'RPSAR'] > 0:
+				if hist.loc[i, 'High'] > hist.loc[i - 1, 'Prior_high']:
 					set_high(hist, i)
 					hist.loc[i, 'Prior_high'] = hist.loc[i, 'High']
-					hist.loc[i, 'Prior_high_count'] = min(10, (hist.loc[i-1, 'Prior_high_count'] + 1))
-					hist.loc[i, 'RPSAR'] = hist.loc[i-1, 'RPSAR'] + 0.02 * hist.loc[i, 'Prior_high_count'] * (hist.loc[i, 'Prior_high'] - hist.loc[i-1, 'RPSAR'])
+					hist.loc[i, 'Prior_high_count'] = min(10, (hist.loc[i - 1, 'Prior_high_count'] + 1))
+					hist.loc[i, 'RPSAR'] = hist.loc[i - 1, 'RPSAR'] + 0.02 * hist.loc[i, 'Prior_high_count'] * (hist.loc[i, 'Prior_high'] - hist.loc[i - 1, 'RPSAR'])
 					if hist.loc[i, 'RPSAR'] > hist.loc[i, 'Close']:
 						set_FPSAR(hist, i)
 				else:
 					set_high(hist, i)
-					hist.loc[i, 'Prior_high'] = hist.loc[i-1, 'Prior_high']
-					hist.loc[i, 'Prior_high_count'] = hist.loc[i-1, 'Prior_high_count']
-					hist.loc[i, 'RPSAR'] = hist.loc[i-1, 'RPSAR'] + 0.02 * hist.loc[i, 'Prior_high_count'] * (hist.loc[i, 'Prior_high'] - hist.loc[i-1, 'RPSAR'])
+					hist.loc[i, 'Prior_high'] = hist.loc[i - 1, 'Prior_high']
+					hist.loc[i, 'Prior_high_count'] = hist.loc[i - 1, 'Prior_high_count']
+					hist.loc[i, 'RPSAR'] = hist.loc[i - 1, 'RPSAR'] + 0.02 * hist.loc[i, 'Prior_high_count'] * (hist.loc[i, 'Prior_high'] - hist.loc[i - 1, 'RPSAR'])
 					if hist.loc[i, 'RPSAR'] > hist.loc[i, 'Close']:
 						set_FPSAR(hist, i)
 			else:
-				if hist.loc[i, 'Low'] < hist.loc[i-1, 'Prior_low']:
+				if hist.loc[i, 'Low'] < hist.loc[i - 1, 'Prior_low']:
 					set_low(hist, i)
 					hist.loc[i, 'Prior_low'] = hist.loc[i, 'Low']
-					hist.loc[i, 'Prior_low_count'] = min(10, (hist.loc[i-1, 'Prior_low_count'] + 1))
-					hist.loc[i, 'FPSAR'] = hist.loc[i-1, 'FPSAR'] - 0.02 * hist.loc[i, 'Prior_low_count'] * (hist.loc[i-1, 'FPSAR'] - hist.loc[i, 'Prior_low'])
+					hist.loc[i, 'Prior_low_count'] = min(10, (hist.loc[i - 1, 'Prior_low_count'] + 1))
+					hist.loc[i, 'FPSAR'] = hist.loc[i - 1, 'FPSAR'] - 0.02 * hist.loc[i, 'Prior_low_count'] * (hist.loc[i - 1, 'FPSAR'] - hist.loc[i, 'Prior_low'])
 					if hist.loc[i, 'FPSAR'] < hist.loc[i, 'Close']:
 						set_RPSAR(hist, i)
 				else:
 					set_low(hist, i)
-					hist.loc[i, 'Prior_low'] = hist.loc[i-1, 'Prior_low']
-					hist.loc[i, 'Prior_low_count'] = hist.loc[i-1, 'Prior_low_count']
-					hist.loc[i, 'FPSAR'] = hist.loc[i-1, 'FPSAR'] - 0.02 * hist.loc[i, 'Prior_low_count'] * (hist.loc[i-1, 'FPSAR'] - hist.loc[i, 'Prior_low'])
+					hist.loc[i, 'Prior_low'] = hist.loc[i - 1, 'Prior_low']
+					hist.loc[i, 'Prior_low_count'] = hist.loc[i - 1, 'Prior_low_count']
+					hist.loc[i, 'FPSAR'] = hist.loc[i - 1, 'FPSAR'] - 0.02 * hist.loc[i, 'Prior_low_count'] * (hist.loc[i - 1, 'FPSAR'] - hist.loc[i, 'Prior_low'])
 					if hist.loc[i, 'FPSAR'] < hist.loc[i, 'Close']:
 						set_RPSAR(hist, i)
-	hist['PSAR'] = hist[['FPSAR', 'RPSAR']].max(axis=1)
+	hist['PSAR'] = hist[['FPSAR', 'RPSAR']].max(axis = 1)
 
 def	set_FPSAR(hist, i):
 	hist.loc[i, 'RPSAR'] = 0
@@ -47,11 +49,11 @@ def	set_FPSAR(hist, i):
 	max_high = 0
 	prior_low = 999999999
 	for high in range(6):
-		if hist.loc[i+high-5, 'High'] > max_high:
-			max_high = hist.loc[i+high-5, 'High']
+		if hist.loc[i + high - 5, 'High'] > max_high:
+			max_high = hist.loc[i+high - 5, 'High']
 	for low in range(6):
-		if hist.loc[i+low-5, 'Low'] < prior_low:
-			prior_low = hist.loc[i+low-5, 'Low']
+		if hist.loc[i + low - 5, 'Low'] < prior_low:
+			prior_low = hist.loc[i + low - 5, 'Low']
 	hist.loc[i, 'FPSAR'] = max_high
 	hist.loc[i, 'Prior_low'] = prior_low
 	hist.loc[i, 'Prior_low_count'] = 1
@@ -63,11 +65,11 @@ def	set_RPSAR(hist, i):
 	max_low = 99999999
 	prior_high = 0
 	for low in range(6):
-		if hist.loc[i+low-5, 'Low'] < max_low:
-			max_low = hist.loc[i+low-5, 'Low']
+		if hist.loc[i + low - 5, 'Low'] < max_low:
+			max_low = hist.loc[i + low - 5, 'Low']
 	for high in range(6):
-		if hist.loc[i+high-5, 'High'] > prior_high:
-			prior_high = hist.loc[i+low-5, 'High']
+		if hist.loc[i + high - 5, 'High'] > prior_high:
+			prior_high = hist.loc[i + low - 5, 'High']
 	hist.loc[i, 'RPSAR'] = max_low
 	hist.loc[i, 'Prior_high'] = prior_high
 	hist.loc[i, 'Prior_high_count'] = 1

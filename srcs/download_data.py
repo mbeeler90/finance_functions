@@ -2,25 +2,26 @@ import pandas as pd
 import numpy as np
 import json
 
-# download the stock data for the ticker for the last year and save it in csv file
+# Download the stock data for the ticker for the last year and save it to a csv file
 def download_data(ticker, stock, period='1y', interval='1d'):
 	i = 0
 	hist = pd.DataFrame([])
 	while hist.empty and i < 3:
 		try:
-			hist = stock.history(period = period, interval = interval, auto_adjust = True, timeout=2)
+			hist = stock.history(period = period, interval = interval, auto_adjust = True, timeout = 2)
 			hist['Date'] = hist.index
-			hist.reset_index(drop = True, inplace=True)
+			hist.reset_index(drop = True, inplace = True)
 		except Exception as e:
 			print(e)
 		i += 1
 	if hist.empty:
 		return hist
 	else:
-		hist.to_csv('./data/'+ticker+'.csv')
+		hist.to_csv('./data/' + ticker + '.csv', index = False)
 		stock_info = download_stock_info(stock, ticker, hist)
 		return hist, stock_info
 
+# Download the stock information and save it in a text file.
 def download_stock_info(stock, ticker, hist):
 	stock_info = {
 		'name': 'not available',
@@ -49,6 +50,6 @@ def download_stock_info(stock, ticker, hist):
 		stock_info['news'] = stock.news
 	except Exception as e:
 		print(e)
-	with open('./data/'+ticker+'_info.txt', 'w') as file:
+	with open('./data/' + ticker + '_info.txt', 'w') as file:
 		file.write(json.dumps(stock_info))
 	return stock_info

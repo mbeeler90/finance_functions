@@ -6,9 +6,9 @@ import srcs.PSAR as PSAR
 import srcs.aroon as aroon
 import srcs.oscillators as oscillators
 
-# call the function to add the selected indicator to df
+# Call the function to add the selected indicator to df
 def add_indicator(hist, ticker, indicator):
-	# moving averages
+	# Moving averages
 	if indicator == '21 day DEMA':
 		MA.double_exponential_moving_average(hist, indicator, 21)
 	elif indicator == '21 day EMA':
@@ -31,6 +31,7 @@ def add_indicator(hist, ticker, indicator):
 	elif indicator == '25 day Aroon indicator':
 		aroon.aroon(hist, indicator, 25)
 
+	# Oscilators
 	elif indicator == '14 day stochastic oscillator':
 		oscillators.stochastic(hist, indicator, 14)
 	elif indicator == '14 day RSI':
@@ -38,4 +39,4 @@ def add_indicator(hist, ticker, indicator):
 	elif indicator == '3 / 10 day Chaikin indicator':
 		oscillators.chaikin(hist, indicator, 3, 10)
 
-	hist.to_csv('./data/'+ticker+'.csv')
+	hist.to_csv('./data/' + ticker + '.csv', index = False)

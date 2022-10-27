@@ -21,13 +21,15 @@ button {
 #show-dashboard {
 	display: none;
 	margin-bottom: 100px;
-	margin-right: 75px;
 }
 
 .title {
 	margin-top: 30px;
 }
 
+/*
+** Style for dashboard-section elements which are not a chart.
+*/
 .info-head, .info-content, .info-content-num, .news-content {
 	width: 100%;
 	border-style: solid;
