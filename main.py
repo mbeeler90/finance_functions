@@ -3,7 +3,6 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State
 import dash_loading_spinners as dls
-import os
 import yfinance as yf
 import pandas as pd
 import json
@@ -285,9 +284,6 @@ app.clientside_callback(
 	prevent_initial_call = True
 	)
 def show_data(n_clicks, time_period, ticker, indicator, size):
-	if not os.path.isdir('data'):
-		os.mkdir('./data')
-
 	width = size['width']
 	display_dashboard = {'display': 'none'}
 	display_indicator = {'display': 'none'}
@@ -302,21 +298,14 @@ def show_data(n_clicks, time_period, ticker, indicator, size):
 		'25 day Aroon indicator'
 	]
 
-	# check whether the ticker historical data has already been downlaoded. If not, download the data, otherwise load the data from file
+	# ddownload ticker data
 	stock = yf.Ticker(ticker)
-	if not os.path.exists('./data/' + ticker + '.csv'):
-		hist, stock_info = download.download_data(ticker, stock)
-		if hist.empty:
-			return dash.no_update, display_dashboard, dash.no_update, display_indicator, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, True
-	else:
-		hist = pd.read_csv('./data/' + ticker + '.csv')
-		with open('./data/' + ticker + '_info.txt') as f:
-			data = f.read()
-		stock_info = json.loads(data)
+	hist, stock_info = download.download_data(ticker, stock)
+	if hist.empty:
+		return dash.no_update, display_dashboard, dash.no_update, display_indicator, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update, True
 
-	# check if the indicator already exists for this stock. If not, the indicator is calculated.
-	if not indicator in hist.columns:
-		indi.add_indicator(hist, ticker, indicator)
+	# calculate indicator
+	indi.add_indicator(hist, ticker, indicator)
 
 	# set date for period that shall be displayed
 	now = datetime.now()

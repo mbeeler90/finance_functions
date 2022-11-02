@@ -38,5 +38,3 @@ def add_indicator(hist, ticker, indicator):
 		oscillators.RSI(hist, indicator, 14)
 	elif indicator == '3 / 10 day Chaikin indicator':
 		oscillators.chaikin(hist, indicator, 3, 10)
-
-	hist.to_csv('./data/' + ticker + '.csv', index = False)

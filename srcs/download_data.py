@@ -17,7 +17,6 @@ def download_data(ticker, stock, period='1y', interval='1d'):
 	if hist.empty:
 		return hist
 	else:
-		hist.to_csv('./data/' + ticker + '.csv', index = False)
 		stock_info = download_stock_info(stock, ticker, hist)
 		return hist, stock_info
 
@@ -50,6 +49,4 @@ def download_stock_info(stock, ticker, hist):
 		stock_info['news'] = stock.news
 	except Exception as e:
 		print(e)
-	with open('./data/' + ticker + '_info.txt', 'w') as file:
-		file.write(json.dumps(stock_info))
 	return stock_info
